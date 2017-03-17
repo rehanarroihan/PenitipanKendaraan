@@ -1,7 +1,16 @@
 package penitipankendaraan;
 
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.text.MessageFormat;
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.swing.JOptionPane;
+import javax.swing.JTable;
+import javax.swing.table.DefaultTableModel;
 
 public class frmMain extends javax.swing.JFrame {
     private String resi = "";
@@ -9,7 +18,7 @@ public class frmMain extends javax.swing.JFrame {
     private String kendaraan = "";
     private String tgl_masuk = "";
     private String tgl_keluar = "";
-    private String hari = "";
+    private String tareef = "";
     
     private String uname = "";
     
@@ -45,11 +54,8 @@ public class frmMain extends javax.swing.JFrame {
         jLabel12 = new javax.swing.JLabel();
         jLabel13 = new javax.swing.JLabel();
         jLabel14 = new javax.swing.JLabel();
-        etHari = new javax.swing.JTextField();
-        jLabel15 = new javax.swing.JLabel();
         etKeluar = new com.toedter.calendar.JDateChooser();
         etMasuk = new com.toedter.calendar.JDateChooser();
-        valHari = new javax.swing.JLabel();
         valResi = new javax.swing.JLabel();
         valNopol = new javax.swing.JLabel();
         valKendaraan = new javax.swing.JLabel();
@@ -60,10 +66,10 @@ public class frmMain extends javax.swing.JFrame {
         jPanel6 = new javax.swing.JPanel();
         jLabel16 = new javax.swing.JLabel();
         Save = new javax.swing.JButton();
-        Delete = new javax.swing.JButton();
+        btDelete = new javax.swing.JButton();
         Clear = new javax.swing.JButton();
         Refresh = new javax.swing.JButton();
-        Edit = new javax.swing.JButton();
+        btPrint = new javax.swing.JButton();
         jPanel7 = new javax.swing.JPanel();
         jScrollPane2 = new javax.swing.JScrollPane();
         tblData = new javax.swing.JTable();
@@ -199,21 +205,10 @@ public class frmMain extends javax.swing.JFrame {
         jLabel14.setText("Tanggal Keluar");
         jPanel2.add(jLabel14);
         jLabel14.setBounds(230, 160, 150, 20);
-        jPanel2.add(etHari);
-        etHari.setBounds(230, 230, 150, 30);
-
-        jLabel15.setText("Total Hari");
-        jPanel2.add(jLabel15);
-        jLabel15.setBounds(230, 210, 150, 20);
         jPanel2.add(etKeluar);
         etKeluar.setBounds(230, 180, 150, 30);
         jPanel2.add(etMasuk);
         etMasuk.setBounds(230, 130, 150, 30);
-
-        valHari.setForeground(new java.awt.Color(255, 0, 0));
-        valHari.setText("◄");
-        jPanel2.add(valHari);
-        valHari.setBounds(390, 230, 30, 30);
 
         valResi.setForeground(new java.awt.Color(255, 0, 0));
         valResi.setText("◄");
@@ -258,7 +253,7 @@ public class frmMain extends javax.swing.JFrame {
         jLabel16.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
         jLabel16.setText("Action");
         jPanel6.add(jLabel16);
-        jLabel16.setBounds(0, 0, 430, 40);
+        jLabel16.setBounds(0, 0, 390, 40);
 
         jPanel5.add(jPanel6);
         jPanel6.setBounds(0, 0, 430, 40);
@@ -273,15 +268,15 @@ public class frmMain extends javax.swing.JFrame {
         jPanel5.add(Save);
         Save.setBounds(10, 50, 70, 30);
 
-        Delete.setFont(new java.awt.Font("Tahoma", 1, 12)); // NOI18N
-        Delete.setText("Delete");
-        Delete.addActionListener(new java.awt.event.ActionListener() {
+        btDelete.setFont(new java.awt.Font("Tahoma", 1, 12)); // NOI18N
+        btDelete.setText("Delete");
+        btDelete.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                DeleteActionPerformed(evt);
+                btDeleteActionPerformed(evt);
             }
         });
-        jPanel5.add(Delete);
-        Delete.setBounds(90, 50, 80, 30);
+        jPanel5.add(btDelete);
+        btDelete.setBounds(90, 50, 80, 30);
 
         Clear.setFont(new java.awt.Font("Tahoma", 1, 12)); // NOI18N
         Clear.setText("Clear");
@@ -303,15 +298,15 @@ public class frmMain extends javax.swing.JFrame {
         jPanel5.add(Refresh);
         Refresh.setBounds(260, 50, 80, 30);
 
-        Edit.setFont(new java.awt.Font("Tahoma", 1, 12)); // NOI18N
-        Edit.setText("Edit");
-        Edit.addActionListener(new java.awt.event.ActionListener() {
+        btPrint.setFont(new java.awt.Font("Tahoma", 1, 12)); // NOI18N
+        btPrint.setText("Print");
+        btPrint.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                EditActionPerformed(evt);
+                btPrintActionPerformed(evt);
             }
         });
-        jPanel5.add(Edit);
-        Edit.setBounds(350, 50, 70, 30);
+        jPanel5.add(btPrint);
+        btPrint.setBounds(350, 50, 70, 30);
 
         getContentPane().add(jPanel5);
         jPanel5.setBounds(240, 360, 430, 100);
@@ -376,7 +371,28 @@ public class frmMain extends javax.swing.JFrame {
     }// </editor-fold>//GEN-END:initComponents
 
     private void tblDataMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_tblDataMouseClicked
-        // TODO add your handling code here:
+        // TODO : kalalu table di klik
+        int baris = tblData.getSelectedRow();
+        if (baris != -1) {
+            etResi.setText(tblData.getValueAt(baris, 1).toString());
+            etNopol.setText(tblData.getValueAt(baris,3).toString());
+            etKendaraan.setText(tblData.getValueAt(baris, 4).toString());
+            SimpleDateFormat dateFormat = new SimpleDateFormat("dd-MM-yyyy");
+            String tanggal_masuk = tblData.getValueAt(baris, 5).toString();
+            String tanggal_keluar = tblData.getValueAt(baris, 6).toString();
+            
+            Date tgl_masuk;
+            Date tgl_keluar;
+            try {
+                tgl_masuk = dateFormat.parse(tanggal_masuk);
+                etMasuk.setDate(tgl_masuk);
+                
+                tgl_keluar = dateFormat.parse(tanggal_keluar);
+                etKeluar.setDate(tgl_keluar);
+            }catch (ParseException ex){
+                Logger.getLogger(frmMain.class.getName()).log(Level.SEVERE, null,ex);
+            }
+        }
     }//GEN-LAST:event_tblDataMouseClicked
 
     private void formWindowOpened(java.awt.event.WindowEvent evt) {//GEN-FIRST:event_formWindowOpened
@@ -386,6 +402,7 @@ public class frmMain extends javax.swing.JFrame {
         tvValidation.setVisible(false);
         
         hideValidation();
+        refreshData();
     }//GEN-LAST:event_formWindowOpened
 
     private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
@@ -406,51 +423,80 @@ public class frmMain extends javax.swing.JFrame {
             tvValidation.setVisible(false);
             hideValidation();
             
-            //Diitung dulu ya
-            Integer intHari = Integer.valueOf(hari);
-            Integer tareef = 3000;
-            Integer tareefTotal = intHari*tareef;
-            
-            total = tareefTotal.toString();
+            //Ngitung hari ya
+            Date masuk = etMasuk.getDate();
+            Date keluar = etKeluar.getDate();
+            long miliseconds = keluar.getTime() - masuk.getTime();
+            int days = (int)miliseconds/(1000*60*60*24);
+            int total = days * 3000;
+            tareef = Integer.toString(total);
             
             //Input start
             String SQLsave = "INSERT INTO tb_transaksi (resi,petugas,nopol,jns_kendaraan,tgl_masuk,tgl_keluar,tarif) "
-                    + "VALUES('"+resi+"','"+uname+"','"+nopol+"','"+kendaraan+"','"+tgl_masuk+"','"+tgl_keluar+"','"+total+"')";
+                    + "VALUES('"+resi+"','"+uname+"','"+nopol+"','"+kendaraan+"','"+tgl_masuk+"','"+tgl_keluar+"','"+tareef+"')";
             int masok = DBConnection.execute(SQLsave);
             if (masok == 1) {
                 JOptionPane.showMessageDialog(this, "Data berhasil ditambahkan", "Sukses", JOptionPane.INFORMATION_MESSAGE);
-                //selectData();
+                refreshData();
             } else {
                 JOptionPane.showMessageDialog(this, "Data gagal ditambahkan", "Gagal", JOptionPane.WARNING_MESSAGE);
             }
         }
     }//GEN-LAST:event_SaveActionPerformed
 
-    private void DeleteActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_DeleteActionPerformed
-        // TODO add your handling code here:
-        
-    }//GEN-LAST:event_DeleteActionPerformed
+    private void btDeleteActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btDeleteActionPerformed
+        // TODO add your handling code here: delete broo
+        int baris = tblData.getSelectedRow();
+        if (baris != -1){
+            String resi_ya = tblData.getValueAt(baris, 1).toString();
+            String SQL = "DELETE FROM tb_transaksi WHERE resi='"+resi_ya+"'";
+            int modar = DBConnection.execute(SQL);
+            if (modar == 1){
+                JOptionPane.showMessageDialog(this, "Data berhasil dihapus", "Sukses", JOptionPane.INFORMATION_MESSAGE);
+                refreshData();
+            }else {
+                JOptionPane.showMessageDialog(this, "data gagal dihapus", "Gagal", JOptionPane.WARNING_MESSAGE);
+            }
+        }else {
+            JOptionPane.showMessageDialog(this, "Pilih Baris Data Terlebih Dahulu", "Error", JOptionPane.WARNING_MESSAGE);
+        }
+    }//GEN-LAST:event_btDeleteActionPerformed
 
     private void ClearActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_ClearActionPerformed
         // TODO add your handling code here:
-        
+        clearData();
     }//GEN-LAST:event_ClearActionPerformed
 
     private void RefreshActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_RefreshActionPerformed
         // TODO add your handling code here:
-        
+        refreshData();
     }//GEN-LAST:event_RefreshActionPerformed
 
-    private void EditActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_EditActionPerformed
-        // TODO add your handling code here:
-        
-    }//GEN-LAST:event_EditActionPerformed
+    private void btPrintActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btPrintActionPerformed
+        // TODO : nge print bos
+        MessageFormat header = new  MessageFormat("Data Transaksi Penitipan Kendaraan");
+        MessageFormat  footer = new MessageFormat("Page {0,number,integer}        ");
+        try{
+            tblData.print(JTable.PrintMode.FIT_WIDTH, header, footer, true, null, true, null);
+            
+        }catch (java.awt.print.PrinterException e){
+            System.err.format("Cannot print %s%n", e.getMessage());
+        }
+    }//GEN-LAST:event_btPrintActionPerformed
 
+    public void clearData(){
+        //TODO : menurutmu ?
+        etResi.setText("");
+        etNopol.setText("");
+        etKendaraan.setText("");
+        etMasuk.setDate(null);
+        etKeluar.setDate(null);
+    }
+    
     public boolean inputTrue(){
         resi = etResi.getText();
         nopol = etNopol.getText();
         kendaraan = etKendaraan.getText();
-        hari = etHari.getText();
         
         SimpleDateFormat dateFormat = new SimpleDateFormat("dd-MM-yyyy");
         tgl_masuk = dateFormat.format(etMasuk.getDate());
@@ -458,11 +504,12 @@ public class frmMain extends javax.swing.JFrame {
         
         //Ceritanya jadi logcat (biasa.., anak android)
         System.out.println("No. Resi : "+resi);
+        System.out.println("Penjaga : "+uname);
         System.out.println("No. Polisi : "+nopol);
         System.out.println("Masuk : "+tgl_masuk);
         System.out.println("Keluar : "+tgl_keluar);
         System.out.println("Kendaraan : "+kendaraan);
-        System.out.println("Jumlah Hari : "+hari);
+        System.out.println("Tarif : "+tareef);
         System.out.println("----------------------------------");
         
         if("".equals(resi)){
@@ -471,7 +518,6 @@ public class frmMain extends javax.swing.JFrame {
             valKendaraan.setVisible(false);
             valMasuk.setVisible(false);
             valKeluar.setVisible(false);
-            valHari.setVisible(false);
             
             tvValidation.setVisible(true);
             return false;
@@ -482,7 +528,6 @@ public class frmMain extends javax.swing.JFrame {
             valKendaraan.setVisible(false);
             valMasuk.setVisible(false);
             valKeluar.setVisible(false);
-            valHari.setVisible(false);
             
             tvValidation.setVisible(true);
             return false;
@@ -493,7 +538,6 @@ public class frmMain extends javax.swing.JFrame {
             valKendaraan.setVisible(true);
             valMasuk.setVisible(false);
             valKeluar.setVisible(false);
-            valHari.setVisible(false);
             
             tvValidation.setVisible(true);
             return false;
@@ -504,7 +548,6 @@ public class frmMain extends javax.swing.JFrame {
             valKendaraan.setVisible(false);
             valMasuk.setVisible(true);
             valKeluar.setVisible(false);
-            valHari.setVisible(false);
             
             tvValidation.setVisible(true);
             return false;
@@ -515,18 +558,6 @@ public class frmMain extends javax.swing.JFrame {
             valKendaraan.setVisible(false);
             valMasuk.setVisible(false);
             valKeluar.setVisible(true);
-            valHari.setVisible(false);
-            
-            tvValidation.setVisible(true);
-            return false;
-        }
-        else if("".equals(hari)){
-            valResi.setVisible(false);
-            valNopol.setVisible(false);
-            valKendaraan.setVisible(false);
-            valMasuk.setVisible(false);
-            valKeluar.setVisible(false);
-            valHari.setVisible(true);
             
             tvValidation.setVisible(true);
             return false;
@@ -540,7 +571,30 @@ public class frmMain extends javax.swing.JFrame {
         valKendaraan.setVisible(false);
         valMasuk.setVisible(false);
         valKeluar.setVisible(false);
-        valHari.setVisible(false);
+    }
+    
+    public void refreshData(){
+        String kolom[] = {"No","Resi","Petugas","Nopol","Jenis","Masuk","Keluar","Tarif"};
+        DefaultTableModel dtm = new DefaultTableModel(null, kolom);
+        String SQL = "SELECT * FROM tb_transaksi";
+        ResultSet rs = DBConnection.executeQuery(SQL);
+        try{
+            while(rs.next()) {
+                String No = rs.getString(1);
+                String Resi = rs.getString(2);
+                String Petugas = rs.getString(3);
+                String Nopol = rs.getString(4);
+                String Jenis = rs.getString(5);
+                String Masuk = rs.getString(6);
+                String Keluar = rs.getString(7);
+                String Tarif = rs.getString(8);
+                String data[] = {No,Resi,Petugas,Nopol,Jenis,Masuk,Keluar,Tarif};
+                dtm.addRow(data);
+            }
+        } catch (SQLException ex){
+            Logger.getLogger(frmMain.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        tblData.setModel(dtm);
     }
     
     public static void main(String args[]) {
@@ -577,11 +631,10 @@ public class frmMain extends javax.swing.JFrame {
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton Clear;
-    private javax.swing.JButton Delete;
-    private javax.swing.JButton Edit;
     private javax.swing.JButton Refresh;
     private javax.swing.JButton Save;
-    private javax.swing.JTextField etHari;
+    private javax.swing.JButton btDelete;
+    private javax.swing.JButton btPrint;
     private com.toedter.calendar.JDateChooser etKeluar;
     private javax.swing.JTextField etKendaraan;
     private com.toedter.calendar.JDateChooser etMasuk;
@@ -593,7 +646,6 @@ public class frmMain extends javax.swing.JFrame {
     private javax.swing.JLabel jLabel12;
     private javax.swing.JLabel jLabel13;
     private javax.swing.JLabel jLabel14;
-    private javax.swing.JLabel jLabel15;
     private javax.swing.JLabel jLabel16;
     private javax.swing.JLabel jLabel17;
     private javax.swing.JLabel jLabel18;
@@ -617,7 +669,6 @@ public class frmMain extends javax.swing.JFrame {
     private javax.swing.JTable tblData;
     private javax.swing.JLabel tvUname;
     private javax.swing.JLabel tvValidation;
-    private javax.swing.JLabel valHari;
     private javax.swing.JLabel valKeluar;
     private javax.swing.JLabel valKendaraan;
     private javax.swing.JLabel valMasuk;
